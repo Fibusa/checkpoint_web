@@ -12,4 +12,4 @@ rest_api_storage:
   get_endpoint: /domains
   save_endpoint: /domains
   api_key: null
-  timeout: 10
+  timeout: 20
