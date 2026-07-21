@@ -1,0 +1,15 @@
+# Тип хранилища: file или rest_api
+storage_type: file
+
+# Параметры для файлового хранилища
+file_storage:
+  domains_file: domains.txt
+  user_domains_file: user_domains.txt
+
+# Параметры для REST API хранилища
+rest_api_storage:
+  base_url: https://api.example.com
+  get_endpoint: /domains
+  save_endpoint: /domains
+  api_key: null
+  timeout: 10
