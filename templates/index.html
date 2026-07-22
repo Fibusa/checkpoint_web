@@ -17,6 +17,7 @@
             --accent-blue: #57cbff;
             --border: #1e3a5f;
             --match-border: #64ffda;
+            --danger: #ff5f5f;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,9 +43,17 @@
             flex-shrink: 0;
         }
 
-        h1 { font-size: 1.5rem; color: var(--accent); letter-spacing: 1px; }
+        h1 { 
+            font-size: 1.5rem; 
+            color: var(--accent); 
+            letter-spacing: 1px; 
+        }
 
-        .header-controls { display: flex; gap: 10px; align-items: center; }
+        .header-controls { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+        }
 
         .header-controls button {
             background: transparent;
@@ -54,24 +63,33 @@
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 0.85rem;
             transition: all 0.2s;
+            min-width: 100px;
+            text-align: center;
         }
 
-        .header-controls button:hover { background: rgba(87, 203, 255, 0.1); }
+        .header-controls button:hover { 
+            background: rgba(87, 203, 255, 0.1); 
+        }
 
         .header-controls button.primary {
             background: var(--accent-blue);
             color: var(--bg-body);
         }
 
-        .header-controls button.primary:hover { background: #3db9ff; }
+        .header-controls button.primary:hover { 
+            background: #3db9ff; 
+        }
 
         .header-controls button.match {
             border-color: var(--accent);
             color: var(--accent);
         }
 
-        .header-controls button.match:hover { background: rgba(100, 255, 218, 0.1); }
+        .header-controls button.match:hover { 
+            background: rgba(100, 255, 218, 0.1); 
+        }
 
         .header-controls button.match.active {
             background: var(--accent);
@@ -81,13 +99,24 @@
         .header-controls button.arrow {
             border-color: var(--accent);
             color: var(--accent);
-            font-size: 1.2rem;
-            padding: 8px 12px;
         }
 
         .header-controls button.arrow:hover { 
             background: rgba(100, 255, 218, 0.1);
             transform: translateX(3px);
+        }
+
+        .header-controls button.settings {
+            border-color: var(--text-secondary);
+            color: var(--text-secondary);
+            min-width: 40px;
+            padding: 8px 12px;
+        }
+
+        .header-controls button.settings:hover { 
+            background: rgba(136, 146, 176, 0.1);
+            color: var(--accent);
+            border-color: var(--accent);
         }
 
         .main-container {
@@ -157,7 +186,9 @@
             resize: vertical;
         }
 
-        .input-area textarea:focus { outline: 1px solid var(--accent-blue); }
+        .input-area textarea:focus { 
+            outline: 1px solid var(--accent-blue); 
+        }
 
         .input-actions {
             display: flex;
@@ -175,9 +206,13 @@
             font-weight: 600;
             font-size: 0.85rem;
             transition: all 0.2s;
+            min-width: 120px;
+            text-align: center;
         }
 
-        .input-actions .btn:hover { background: #3db9ff; }
+        .input-actions .btn:hover { 
+            background: #3db9ff; 
+        }
 
         .domain-item {
             display: flex;
@@ -207,7 +242,9 @@
             flex: 1;
         }
 
-        .domain-item.matched .domain-name { color: var(--accent); }
+        .domain-item.matched .domain-name { 
+            color: var(--accent); 
+        }
 
         .actions {
             display: flex;
@@ -216,19 +253,31 @@
             transition: opacity 0.2s;
         }
 
-        .domain-item:hover .actions { opacity: 1; }
+        .domain-item:hover .actions { 
+            opacity: 1; 
+        }
 
         .btn-icon {
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--text-secondary);
-            padding: 4px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            min-width: 32px;
+            text-align: center;
         }
 
-        .btn-icon:hover { color: var(--accent); }
-        .btn-icon.delete:hover { color: #ff5f5f; }
+        .btn-icon:hover { 
+            color: var(--accent); 
+            background: rgba(100, 255, 218, 0.1);
+        }
+
+        .btn-icon.delete:hover { 
+            color: var(--danger); 
+            background: rgba(255, 95, 95, 0.1);
+        }
 
         .empty-state {
             text-align: center;
@@ -236,7 +285,10 @@
             color: var(--text-secondary);
         }
 
-        .empty-state span { font-size: 3rem; display: block; margin-bottom: 10px; }
+        .empty-state-text { 
+            font-size: 1rem;
+            margin-top: 10px;
+        }
 
         .save-btn {
             background: var(--accent);
@@ -248,29 +300,174 @@
             font-weight: 600;
             font-size: 0.85rem;
             transition: all 0.2s;
+            min-width: 100px;
+            text-align: center;
         }
 
-        .save-btn:hover { background: #4dd9b5; }
+        .save-btn:hover { 
+            background: #4dd9b5; 
+        }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-body); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(2, 12, 27, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 30px;
+            width: 450px;
+            max-width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .modal-close:hover {
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: 'Consolas', monospace;
+        }
+
+        .form-input:focus {
+            outline: 1px solid var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .modal-actions button {
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 90px;
+        }
+
+        .modal-actions .btn-cancel {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .modal-actions .btn-cancel:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .modal-actions .btn-save {
+            background: var(--accent);
+            border: none;
+            color: var(--bg-body);
+        }
+
+        .modal-actions .btn-save:hover {
+            background: #4dd9b5;
+        }
+
+        ::-webkit-scrollbar { 
+            width: 8px; 
+        }
+
+        ::-webkit-scrollbar-track { 
+            background: var(--bg-body); 
+        }
+
+        ::-webkit-scrollbar-thumb { 
+            background: var(--border); 
+            border-radius: 4px; 
+        }
+
+        ::-webkit-scrollbar-thumb:hover { 
+            background: var(--accent-blue); 
+        }
 
         @media (max-width: 768px) {
-            .main-container { flex-direction: column; }
-            body { height: auto; overflow: auto; }
+            .main-container { 
+                flex-direction: column; 
+            }
+            body { 
+                height: auto; 
+                overflow: auto; 
+            }
+            .header-controls button {
+                min-width: 80px;
+                padding: 8px 12px;
+            }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🌐 DOMAIN MANAGER</h1>
+        <h1>DOMAIN MANAGER</h1>
         <div class="header-controls">
-            <button class="match" id="match-btn" onclick="toggleMatches()">🔍 Совпадения</button>
-            <button class="arrow" onclick="moveToRight()" title="Перенести домены в правый список (визуально)">➡️</button>
-            <button onclick="refreshBackend()">🔄 Обновить</button>
+            <button class="match" id="match-btn" onclick="toggleMatches()">Matches</button>
+            <button class="arrow" onclick="moveToRight()" title="Move domains to right list">Move</button>
+            <button onclick="refreshBackend()">Refresh</button>
+            <button class="settings" onclick="openSettings()" title="Settings">⚙</button>
         </div>
     </header>
 
@@ -278,14 +475,14 @@
         <!-- Left Panel -->
         <div class="list-panel">
             <div class="panel-header">
-                <span class="panel-title">📥 Левый список <span class="badge" id="left-count">{{ user_count }}</span></span>
-                <button class="btn-icon" onclick="clearLeftList()" title="Очистить">🗑️</button>
+                <span class="panel-title" id="left-panel-title">Left List <span class="badge" id="left-count">{{ user_count }}</span></span>
+                <button class="btn-icon" onclick="clearLeftList()" title="Clear">Clear</button>
             </div>
             
             <div class="input-area">
-                <textarea id="domainInput" placeholder="Введите домены (каждый с новой строки)&#10;example.com&#10;test.ru"></textarea>
+                <textarea id="domainInput" placeholder="Enter domains (one per line)&#10;example.com&#10;test.ru"></textarea>
                 <div class="input-actions">
-                    <button class="btn" onclick="addDomains()">Добавить в список</button>
+                    <button class="btn" onclick="addDomains()">Add to List</button>
                 </div>
             </div>
             
@@ -295,14 +492,13 @@
                     <div class="domain-item" data-domain="{{ domain }}">
                         <span class="domain-name">{{ domain }}</span>
                         <div class="actions">
-                            <button class="btn-icon delete" onclick="removeFromLeft('{{ domain }}')" title="Удалить">✕</button>
+                            <button class="btn-icon delete" onclick="removeFromLeft('{{ domain }}')" title="Delete">Delete</button>
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
                 <div class="empty-state">
-                    <span>📭</span>
-                    <p>Список пуст</p>
+                    <div class="empty-state-text">List is empty</div>
                 </div>
                 {% endif %}
             </div>
@@ -311,8 +507,8 @@
         <!-- Right Panel -->
         <div class="list-panel">
             <div class="panel-header">
-                <span class="panel-title">🌍 Правый список <span class="badge" id="right-count">{{ backend_count }}</span></span>
-                <button class="save-btn" onclick="saveToBackend()">💾 Сохранить</button>
+                <span class="panel-title" id="right-panel-title">Right List <span class="badge" id="right-count">{{ backend_count }}</span></span>
+                <button class="save-btn" onclick="saveToBackend()">Save</button>
             </div>
             <div class="list-content" id="right-list">
                 {% if backend_domains %}
@@ -320,16 +516,40 @@
                     <div class="domain-item" data-domain="{{ domain }}">
                         <span class="domain-name">{{ domain }}</span>
                         <div class="actions">
-                            <button class="btn-icon delete" onclick="removeFromRight('{{ domain }}')" title="Удалить">✕</button>
+                            <button class="btn-icon delete" onclick="removeFromRight('{{ domain }}')" title="Delete">Delete</button>
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
                 <div class="empty-state">
-                    <span>🌐</span>
-                    <p>Нет доменов</p>
+                    <div class="empty-state-text">No domains</div>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Settings</h2>
+                <button class="modal-close" onclick="closeSettings()">×</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="setting-list-name">List Name</label>
+                <input type="text" id="setting-list-name" class="form-input" placeholder="My Domain List">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="setting-api-key">API Key</label>
+                <input type="password" id="setting-api-key" class="form-input" placeholder="Enter API key">
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+                <button class="btn-save" onclick="saveSettings()">Save</button>
             </div>
         </div>
     </div>
@@ -338,6 +558,38 @@
         let leftListData = [];
         let rightListData = [];
         let showMatches = false;
+        let settings = {
+            listName: 'Domain List',
+            apiKey: ''
+        };
+
+        function loadSettings() {
+            const saved = localStorage.getItem('domainManagerSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                document.getElementById('left-panel-title').textContent = settings.listName + ' ';
+                document.getElementById('setting-list-name').value = settings.listName;
+                document.getElementById('setting-api-key').value = settings.apiKey;
+            }
+        }
+
+        function saveSettings() {
+            settings.listName = document.getElementById('setting-list-name').value.trim() || 'Domain List';
+            settings.apiKey = document.getElementById('setting-api-key').value.trim();
+            
+            localStorage.setItem('domainManagerSettings', JSON.stringify(settings));
+            document.getElementById('left-panel-title').textContent = settings.listName + ' ';
+            
+            closeSettings();
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.remove('active');
+        }
 
         function addDomains() {
             const text = document.getElementById('domainInput').value;
@@ -362,7 +614,7 @@
             countBadge.textContent = leftListData.length;
 
             if (leftListData.length === 0) {
-                container.innerHTML = '<div class="empty-state"><span>📭</span><p>Список пуст</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-text">List is empty</div></div>';
                 return;
             }
 
@@ -372,7 +624,7 @@
                 <div class="domain-item ${isMatched ? 'matched' : ''}" data-domain="${domain}">
                     <span class="domain-name">${domain}</span>
                     <div class="actions">
-                        <button class="btn-icon delete" onclick="removeFromLeft(${index})" title="Удалить">✕</button>
+                        <button class="btn-icon delete" onclick="removeFromLeft(${index})" title="Delete">Delete</button>
                     </div>
                 </div>
             `}).join('');
@@ -385,7 +637,7 @@
             countBadge.textContent = rightListData.length;
 
             if (rightListData.length === 0) {
-                container.innerHTML = '<div class="empty-state"><span>🌐</span><p>Нет доменов</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-text">No domains</div></div>';
                 return;
             }
 
@@ -395,7 +647,7 @@
                 <div class="domain-item ${isMatched ? 'matched' : ''}" data-domain="${domain}">
                     <span class="domain-name">${domain}</span>
                     <div class="actions">
-                        <button class="btn-icon delete" onclick="removeFromRight(${index})" title="Удалить">✕</button>
+                        <button class="btn-icon delete" onclick="removeFromRight(${index})" title="Delete">Delete</button>
                     </div>
                 </div>
             `}).join('');
@@ -412,10 +664,10 @@
             
             if (showMatches) {
                 btn.classList.add('active');
-                btn.textContent = '✓ Показаны';
+                btn.textContent = 'Shown';
             } else {
                 btn.classList.remove('active');
-                btn.textContent = '🔍 Совпадения';
+                btn.textContent = 'Matches';
             }
             
             updateMatches();
@@ -442,8 +694,12 @@
             try {
                 const res = await fetch('/api/save-to-backend', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({domains: rightListData})
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        domains: rightListData
+                    })
                 });
                 const result = await res.json();
                 
@@ -485,6 +741,11 @@
             }
         }
 
+        document.getElementById('settings-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeSettings();
+        });
+
+        loadSettings();
         renderLeftList();
         refreshBackend();
     </script>

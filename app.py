@@ -2,7 +2,6 @@ from flask import Flask, render_template, jsonify, request
 import yaml
 from pathlib import Path
 from storage.file_storage import FileStorage
-from storage.rest_api import RestApiStorage
 
 app = Flask(__name__)
 
@@ -16,19 +15,9 @@ def load_config():
 def get_backend_storage():
     config = load_config()
     storage_type = config.get("storage_type", "file")
-    
-    if storage_type == "rest_api":
-        cfg = config.get("rest_api_storage", {})
-        return RestApiStorage(
-            base_url=cfg.get("base_url", ""),
-            get_endpoint=cfg.get("get_endpoint", "/domains"),
-            save_endpoint=cfg.get("save_endpoint", "/domains"),
-            api_key=cfg.get("api_key"),
-            timeout=cfg.get("timeout", 10)
-        )
-    else:
-        cfg = config.get("file_storage", {})
-        return FileStorage(str(BASE_DIR / cfg.get("domains_file", "domains.txt")))
+
+    cfg = config.get("file_storage", {})
+    return FileStorage(str(BASE_DIR / cfg.get("domains_file", "domains.txt")))
 
 def get_user_storage():
     config = load_config()

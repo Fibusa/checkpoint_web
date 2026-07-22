@@ -38,7 +38,7 @@ def login():
     log_request()
     return jsonify(load_json("login.json"))
 
-@app.route('/web_api/show-application-sites', methods=['POST'])
+@app.route('/web_api/show-application-site', methods=['POST'])
 def show_app_sites():
     log_request()
     return jsonify(load_json("show-application-sites.json"))

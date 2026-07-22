@@ -3,3 +3,4 @@ __pycache__/
 mock_server/
 *.py[codz]
 *$py.class
+domains.txt
