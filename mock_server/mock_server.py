@@ -41,7 +41,7 @@ def login():
 @app.route('/web_api/show-application-site', methods=['POST'])
 def show_app_sites():
     log_request()
-    return jsonify(load_json("show-application-sites.json"))
+    return jsonify(load_json("show-application-site.json"))
 
 @app.route('/web_api/logout', methods=['POST'])
 def logout():
@@ -51,7 +51,7 @@ def logout():
 @app.route('/web_api/set-application-site', methods=['POST'])
 def set_application_site():
     log_request()
-    return '', 200
+    return jsonify(load_json("set-application-site.json"))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

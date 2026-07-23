@@ -18,6 +18,7 @@
             --border: #1e3a5f;
             --match-border: #64ffda;
             --danger: #ff5f5f;
+            --success: #00ff88;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -106,17 +107,18 @@
             transform: translateX(3px);
         }
 
-        .header-controls button.settings {
-            border-color: var(--text-secondary);
-            color: var(--text-secondary);
-            min-width: 40px;
-            padding: 8px 12px;
+        .header-controls button.login {
+            border-color: var(--success);
+            color: var(--success);
         }
 
-        .header-controls button.settings:hover { 
-            background: rgba(136, 146, 176, 0.1);
-            color: var(--accent);
-            border-color: var(--accent);
+        .header-controls button.login:hover { 
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .header-controls button.login.logged-in {
+            background: var(--success);
+            color: var(--bg-body);
         }
 
         .main-container {
@@ -427,6 +429,48 @@
             background: #4dd9b5;
         }
 
+        /* Success Popup */
+        .success-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-panel);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 20px 30px;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .success-popup.active {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .success-popup-icon {
+            color: var(--success);
+            font-size: 1.5rem;
+        }
+
+        .success-popup-text {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         ::-webkit-scrollbar { 
             width: 8px; 
         }
@@ -464,10 +508,10 @@
     <header>
         <h1>DOMAIN MANAGER</h1>
         <div class="header-controls">
+            <button class="login" id="login-btn" onclick="openLogin()">Login</button>
             <button class="match" id="match-btn" onclick="toggleMatches()">Matches</button>
             <button class="arrow" onclick="moveToRight()" title="Move domains to right list">Move</button>
             <button onclick="refreshBackend()">Refresh</button>
-            <button class="settings" onclick="openSettings()" title="Settings">⚙</button>
         </div>
     </header>
 
@@ -475,7 +519,7 @@
         <!-- Left Panel -->
         <div class="list-panel">
             <div class="panel-header">
-                <span class="panel-title" id="left-panel-title">Left List <span class="badge" id="left-count">{{ user_count }}</span></span>
+                <span class="panel-title">Left List <span class="badge" id="left-count">{{ user_count }}</span></span>
                 <button class="btn-icon" onclick="clearLeftList()" title="Clear">Clear</button>
             </div>
             
@@ -507,7 +551,7 @@
         <!-- Right Panel -->
         <div class="list-panel">
             <div class="panel-header">
-                <span class="panel-title" id="right-panel-title">Right List <span class="badge" id="right-count">{{ backend_count }}</span></span>
+                <span class="panel-title">Right List <span class="badge" id="right-count">{{ backend_count }}</span></span>
                 <button class="save-btn" onclick="saveToBackend()">Save</button>
             </div>
             <div class="list-content" id="right-list">
@@ -529,29 +573,30 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settings-modal">
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="login-modal">
         <div class="modal">
             <div class="modal-header">
-                <h2 class="modal-title">Settings</h2>
-                <button class="modal-close" onclick="closeSettings()">×</button>
+                <h2 class="modal-title">Login</h2>
+                <button class="modal-close" onclick="closeLogin()">×</button>
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="setting-list-name">List Name</label>
-                <input type="text" id="setting-list-name" class="form-input" placeholder="My Domain List">
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label" for="setting-api-key">API Key</label>
-                <input type="password" id="setting-api-key" class="form-input" placeholder="Enter API key">
+                <label class="form-label" for="login-api-key">API Key</label>
+                <input type="password" id="login-api-key" class="form-input" placeholder="Enter API key">
             </div>
             
             <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
-                <button class="btn-save" onclick="saveSettings()">Save</button>
+                <button class="btn-cancel" onclick="closeLogin()">Cancel</button>
+                <button class="btn-save" onclick="doLogin()">Login</button>
             </div>
         </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div class="success-popup" id="success-popup">
+        <span class="success-popup-icon">✓</span>
+        <span class="success-popup-text" id="success-popup-text">Success</span>
     </div>
 
     <script>
@@ -559,36 +604,108 @@
         let rightListData = [];
         let showMatches = false;
         let settings = {
-            listName: 'Domain List',
-            apiKey: ''
+            apiKey: '',
+            sid: ''
         };
+        let isLoggedIn = false;
 
         function loadSettings() {
             const saved = localStorage.getItem('domainManagerSettings');
             if (saved) {
                 settings = JSON.parse(saved);
-                document.getElementById('left-panel-title').textContent = settings.listName + ' ';
-                document.getElementById('setting-list-name').value = settings.listName;
-                document.getElementById('setting-api-key').value = settings.apiKey;
+                document.getElementById('login-api-key').value = settings.apiKey;
+                
+                if (settings.sid) {
+                    isLoggedIn = true;
+                    updateLoginButton();
+                }
             }
         }
 
-        function saveSettings() {
-            settings.listName = document.getElementById('setting-list-name').value.trim() || 'Domain List';
-            settings.apiKey = document.getElementById('setting-api-key').value.trim();
+        function openLogin() {
+            if (isLoggedIn) {
+                doLogout();
+                return;
+            }
+            document.getElementById('login-modal').classList.add('active');
+        }
+
+        function closeLogin() {
+            document.getElementById('login-modal').classList.remove('active');
+        }
+
+        async function doLogin() {
+            const apiKey = document.getElementById('login-api-key').value.trim();
             
+            if (!apiKey) {
+                alert('Please enter API key');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({api_key: apiKey})
+                });
+                const result = await res.json();
+                
+                if (result.sid) {
+                    settings.apiKey = apiKey;
+                    settings.sid = result.sid;
+                    isLoggedIn = true;
+                    localStorage.setItem('domainManagerSettings', JSON.stringify(settings));
+                    document.getElementById('login-api-key').value = apiKey;
+                    closeLogin();
+                    updateLoginButton();
+                    showSuccess('Login successful');
+                    refreshBackend();
+                } else {
+                    alert('Login failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('Login error: ' + e.message);
+            }
+        }
+
+        async function doLogout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({sid: settings.sid})
+                });
+            } catch(e) {
+                console.error(e);
+            }
+            
+            settings.sid = '';
+            isLoggedIn = false;
             localStorage.setItem('domainManagerSettings', JSON.stringify(settings));
-            document.getElementById('left-panel-title').textContent = settings.listName + ' ';
+            updateLoginButton();
+            showSuccess('Logged out');
+        }
+
+        function updateLoginButton() {
+            const btn = document.getElementById('login-btn');
+            if (isLoggedIn) {
+                btn.textContent = 'Logout';
+                btn.classList.add('logged-in');
+            } else {
+                btn.textContent = 'Login';
+                btn.classList.remove('logged-in');
+            }
+        }
+
+        function showSuccess(message) {
+            const popup = document.getElementById('success-popup');
+            const text = document.getElementById('success-popup-text');
+            text.textContent = message;
+            popup.classList.add('active');
             
-            closeSettings();
-        }
-
-        function openSettings() {
-            document.getElementById('settings-modal').classList.add('active');
-        }
-
-        function closeSettings() {
-            document.getElementById('settings-modal').classList.remove('active');
+            setTimeout(() => {
+                popup.classList.remove('active');
+            }, 3000);
         }
 
         function addDomains() {
@@ -691,19 +808,25 @@
                 return;
             }
 
+            if (!isLoggedIn) {
+                alert('Please login first');
+                openLogin();
+                return;
+            }
+
             try {
                 const res = await fetch('/api/save-to-backend', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        domains: rightListData
+                        domains: rightListData,
+                        sid: settings.sid
                     })
                 });
                 const result = await res.json();
                 
                 if (result.success) {
+                    showSuccess('Domains saved');
                     refreshBackend();
                 }
             } catch(e) {
@@ -730,8 +853,14 @@
         }
 
         async function refreshBackend() {
+            if (!isLoggedIn) {
+                return;
+            }
+            
             try {
-                const res = await fetch('/api/domains');
+                const res = await fetch('/api/domains', {
+                    headers: {'X-SID': settings.sid}
+                });
                 const data = await res.json();
                 rightListData = data.domains;
                 renderRightList();
@@ -741,13 +870,15 @@
             }
         }
 
-        document.getElementById('settings-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeSettings();
+        document.getElementById('login-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeLogin();
         });
 
         loadSettings();
         renderLeftList();
-        refreshBackend();
+        if (isLoggedIn) {
+            refreshBackend();
+        }
     </script>
 </body>
 </html>

@@ -1,8 +1,7 @@
 from pathlib import Path
 from typing import List
-from storage.base import DomainStorage
 
-class FileStorage(DomainStorage):
+class FileStorage():
     """Хранилище доменов в локальном файле."""
     
     def __init__(self, file_path: str):
