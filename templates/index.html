@@ -874,11 +874,19 @@
             if (e.target === this) closeLogin();
         });
 
-        loadSettings();
-        renderLeftList();
-        if (isLoggedIn) {
-            refreshBackend();
-        }
+        // Авто-открытие Login модального окна при загрузке страницы
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            renderLeftList();
+            
+            if (!isLoggedIn) {
+                setTimeout(() => {
+                    openLogin();
+                }, 300);
+            } else {
+                refreshBackend();
+            }
+        });
     </script>
 </body>
 </html>
