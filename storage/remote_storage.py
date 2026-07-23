@@ -1,6 +1,6 @@
 import re
 from typing import List
-import api
+import storage.api as api
 
 class CheckpointStorage():
     """Хранилище доменов через Check Point API."""
@@ -73,3 +73,48 @@ class CheckpointStorage():
         except Exception as e:
             print(f"Error in save_domains: {e}")
             return False
+        
+if __name__ == '__main__':
+    storage = CheckpointStorage(
+        base_url="http://localhost:8080",
+        list_name="WhiteList_kontur.ru"
+    )
+    
+    print("=" * 50)
+    print("Тест CheckpointStorage")
+    print("=" * 50)
+    
+    # Тест 1: login (обязательно первый)
+    print("\n[1] Тест login()...")
+    sid = storage.login("FFl8+KF1AJ2Tisac6d0K+w==")
+    print(f"    Session ID: {sid}")
+    print(f"    Статус: {'OK' if sid else 'FAILED'}")
+    
+    if not sid:
+        print("\nТест прерван: не удалось получить сессию")
+        exit(1)
+    
+    # Тест 2: get_domains (требует сессию)
+    print("\n[2] Тест get_domains()...")
+    domains = storage.get_domains(sid)
+    print(f"    Домены: {domains}")
+    print(f"    Количество: {len(domains)}")
+    print(f"    Статус: OK")
+    
+    # Тест 3: save_domains (требует сессию)
+    print("\n[3] Тест save_domains()...")
+    test_domains = ["example.com", "test.ru"]
+    result = storage.save_domains(sid, test_domains)
+    print(f"    Отправлено: {test_domains}")
+    print(f"    Результат: {result}")
+    print(f"    Статус: {'OK' if result else 'FAILED'}")
+    
+    # Тест 4: logout (требует сессию)
+    print("\n[4] Тест logout()...")
+    logout_result = storage.logout(sid)
+    print(f"    Результат: {logout_result}")
+    print(f"    Статус: OK")
+    
+    print("\n" + "=" * 50)
+    print("Все тесты завершены")
+    print("=" * 50)

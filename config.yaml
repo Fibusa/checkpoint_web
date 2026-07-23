@@ -1,9 +1,9 @@
 # Общие параметры запуска
 web_server:
-  address: domains.txt
-  cert: user_domains.txt
+  address: 127.0.0.1
+  port: 8081
 
 # Параметры для REST API хранилища
 rest_api_checkpoint:
-  base_url: https://api.example.com
-  timeout: 20
+  base_url: http://127.0.0.1:8080
+  list_name: "Test"

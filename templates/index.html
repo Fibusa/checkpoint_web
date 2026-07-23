@@ -519,7 +519,7 @@
         <!-- Left Panel -->
         <div class="list-panel">
             <div class="panel-header">
-                <span class="panel-title">Left List <span class="badge" id="left-count">{{ user_count }}</span></span>
+                <span class="panel-title">Left List <span class="badge" id="left-count">0</span></span>
                 <button class="btn-icon" onclick="clearLeftList()" title="Clear">Clear</button>
             </div>
             
@@ -531,44 +531,22 @@
             </div>
             
             <div class="list-content" id="left-list">
-                {% if user_domains %}
-                    {% for domain in user_domains %}
-                    <div class="domain-item" data-domain="{{ domain }}">
-                        <span class="domain-name">{{ domain }}</span>
-                        <div class="actions">
-                            <button class="btn-icon delete" onclick="removeFromLeft('{{ domain }}')" title="Delete">Delete</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
                 <div class="empty-state">
                     <div class="empty-state-text">List is empty</div>
                 </div>
-                {% endif %}
             </div>
         </div>
 
         <!-- Right Panel -->
         <div class="list-panel">
             <div class="panel-header">
-                <span class="panel-title">Right List <span class="badge" id="right-count">{{ backend_count }}</span></span>
+                <span class="panel-title">Right List <span class="badge" id="right-count">0</span></span>
                 <button class="save-btn" onclick="saveToBackend()">Save</button>
             </div>
             <div class="list-content" id="right-list">
-                {% if backend_domains %}
-                    {% for domain in backend_domains %}
-                    <div class="domain-item" data-domain="{{ domain }}">
-                        <span class="domain-name">{{ domain }}</span>
-                        <div class="actions">
-                            <button class="btn-icon delete" onclick="removeFromRight('{{ domain }}')" title="Delete">Delete</button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% else %}
                 <div class="empty-state">
                     <div class="empty-state-text">No domains</div>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -603,24 +581,7 @@
         let leftListData = [];
         let rightListData = [];
         let showMatches = false;
-        let settings = {
-            apiKey: '',
-            sid: ''
-        };
         let isLoggedIn = false;
-
-        function loadSettings() {
-            const saved = localStorage.getItem('domainManagerSettings');
-            if (saved) {
-                settings = JSON.parse(saved);
-                document.getElementById('login-api-key').value = settings.apiKey;
-                
-                if (settings.sid) {
-                    isLoggedIn = true;
-                    updateLoginButton();
-                }
-            }
-        }
 
         function openLogin() {
             if (isLoggedIn) {
@@ -632,6 +593,19 @@
 
         function closeLogin() {
             document.getElementById('login-modal').classList.remove('active');
+        }
+
+        async function checkSession() {
+            try {
+                const res = await fetch('/api/check-session', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const result = await res.json();
+                return result.valid;
+            } catch(e) {
+                return false;
+            }
         }
 
         async function doLogin() {
@@ -646,22 +620,19 @@
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({api_key: apiKey})
+                    body: JSON.stringify({api_key: apiKey}),
+                    credentials: 'include'
                 });
                 const result = await res.json();
                 
                 if (result.sid) {
-                    settings.apiKey = apiKey;
-                    settings.sid = result.sid;
                     isLoggedIn = true;
-                    localStorage.setItem('domainManagerSettings', JSON.stringify(settings));
-                    document.getElementById('login-api-key').value = apiKey;
-                    closeLogin();
                     updateLoginButton();
+                    closeLogin();
                     showSuccess('Login successful');
                     refreshBackend();
                 } else {
-                    alert('Login failed: ' + (result.message || 'Unknown error'));
+                    alert('Login failed: ' + (result.error || 'Unknown error'));
                 }
             } catch(e) {
                 alert('Login error: ' + e.message);
@@ -672,18 +643,17 @@
             try {
                 await fetch('/api/logout', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({sid: settings.sid})
+                    credentials: 'include'
                 });
             } catch(e) {
                 console.error(e);
             }
             
-            settings.sid = '';
             isLoggedIn = false;
-            localStorage.setItem('domainManagerSettings', JSON.stringify(settings));
             updateLoginButton();
             showSuccess('Logged out');
+            rightListData = [];
+            renderRightList();
         }
 
         function updateLoginButton() {
@@ -818,10 +788,8 @@
                 const res = await fetch('/api/save-to-backend', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        domains: rightListData,
-                        sid: settings.sid
-                    })
+                    body: JSON.stringify({domains: rightListData}),
+                    credentials: 'include'
                 });
                 const result = await res.json();
                 
@@ -859,10 +827,10 @@
             
             try {
                 const res = await fetch('/api/domains', {
-                    headers: {'X-SID': settings.sid}
+                    credentials: 'include'
                 });
                 const data = await res.json();
-                rightListData = data.domains;
+                rightListData = data.domains || [];
                 renderRightList();
                 updateMatches();
             } catch(e) { 
@@ -874,18 +842,19 @@
             if (e.target === this) closeLogin();
         });
 
-        // Авто-открытие Login модального окна при загрузке страницы
-        window.addEventListener('DOMContentLoaded', function() {
-            loadSettings();
-            renderLeftList();
-            
-            if (!isLoggedIn) {
+        // Авто-открытие Login при загрузке если нет сессии
+        window.addEventListener('DOMContentLoaded', async function() {
+            const valid = await checkSession();
+            if (valid) {
+                isLoggedIn = true;
+                updateLoginButton();
+                refreshBackend();
+            } else {
                 setTimeout(() => {
                     openLogin();
                 }, 300);
-            } else {
-                refreshBackend();
             }
+            renderLeftList();
         });
     </script>
 </body>

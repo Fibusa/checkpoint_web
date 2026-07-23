@@ -1,97 +1,127 @@
-from flask import Flask, render_template, jsonify, request
-import yaml
+from flask import Flask, jsonify, request, render_template, make_response
 from pathlib import Path
-from storage.file_storage import FileStorage
+import yaml
 
-app = Flask(__name__)
+from storage.remote_storage import CheckpointStorage
 
-BASE_DIR = Path(__file__).parent
-CONFIG_FILE = BASE_DIR / "config.yaml"
-
-def load_config():
-    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+def load_config(config_path: str = "config.yaml") -> dict:
+    """Загружает конфигурацию из YAML файла."""
+    config_file = Path(config_path)
+    if not config_file.exists():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+    
+    with open(config_file, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
-def get_backend_storage():
-    config = load_config()
-    storage_type = config.get("storage_type", "file")
+# Загружаем конфиг при старте
+config = load_config()
 
-    cfg = config.get("file_storage", {})
-    return FileStorage(str(BASE_DIR / cfg.get("domains_file", "domains.txt")))
+# Инициализация Flask
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'dev-key-change-in-production'
 
-def get_user_storage():
-    config = load_config()
-    cfg = config.get("file_storage", {})
-    return FileStorage(str(BASE_DIR / cfg.get("domains_file", "domains.txt")))
+# Инициализация хранилища
+storage = CheckpointStorage(
+    base_url=config['rest_api_checkpoint']['base_url'],
+    list_name=config['rest_api_checkpoint']['list_name']
+)
+
+# Глобальные сессии (для демо)
+sessions = {}
+
+# Флаг для HTTPS (в продакшене True)
+USE_HTTPS = False
 
 @app.route('/')
 def index():
-    backend_storage = get_backend_storage()
-    user_storage = get_user_storage()
-    
-    backend_domains = backend_storage.get_domains()
-    user_domains = user_storage.get_domains()
-    
-    return render_template('index.html', 
-                         backend_domains=backend_domains,
-                         user_domains=user_domains,
-                         backend_count=len(backend_domains),
-                         user_count=len(user_domains),
-                         api_available=backend_storage.is_available() if backend_storage.__class__.__name__ == "RestApiStorage" else True)
+    """Главная страница с шаблоном."""
+    return render_template('index.html', user_count=0, backend_count=0, user_domains=[], backend_domains=[])
 
-@app.route('/api/domains')
-def api_domains():
-    storage = get_backend_storage()
-    return jsonify({"domains": storage.get_domains()})
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    """Авторизация по API ключу."""
+    data = request.get_json(silent=True) or {}
+    api_key = data.get('api_key')
+    
+    if not api_key:
+        return jsonify({'error': 'api_key is required'}), 400
+    
+    try:
+        sid = storage.login(api_key)
+        if sid:
+            sessions[sid] = {'api_key': api_key}
+            
+            response = make_response(jsonify({'sid': sid, 'status': 'ok'}))
+            
+            response.set_cookie(
+                'sid',
+                sid,
+                max_age=3600,
+                httponly=True,
+                secure=USE_HTTPS,
+                samesite='Strict' if USE_HTTPS else 'Lax',
+                path='/'
+            )
+            
+            return response
+        return jsonify({'error': 'Invalid API key'}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/api/user-domains')
-def api_user_domains():
-    storage = get_user_storage()
-    return jsonify({"domains": storage.get_domains()})
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    """Завершение сессии."""
+    sid = request.cookies.get('sid')
+    
+    if sid and sid in sessions:
+        try:
+            storage.logout(sid)
+        except Exception:
+            pass
+        del sessions[sid]
+    
+    response = make_response(jsonify({'status': 'logged out'}))
+    response.delete_cookie('sid', path='/')
+    return response
+
+@app.route('/api/check-session', methods=['POST'])
+def api_check_session():
+    """Проверка активной сессии."""
+    sid = request.cookies.get('sid')
+    
+    if sid and sid in sessions:
+        return jsonify({'valid': True})
+    return jsonify({'valid': False})
+
+@app.route('/api/domains', methods=['GET'])
+def api_get_domains():
+    """Получение списка доменов (заглушка)."""
+    sid = request.cookies.get('sid')
+    
+    if not sid or sid not in sessions:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    # Заглушка - вернуть пустой список
+    return jsonify({'domains': []})
 
 @app.route('/api/save-to-backend', methods=['POST'])
-def save_to_backend():
-    """Сохраняет домены в правый список (бэкенд/API/файл)."""
-    try:
-        data = request.get_json()
-        domains = [d.strip() for d in data.get('domains', []) if d.strip()]
-        
-        storage = get_backend_storage()
-        success = storage.save_domains(domains)
-        
-        return jsonify({"success": success, "count": len(domains)})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route('/api/save-user-list', methods=['POST'])
-def save_user_list():
-    """Сохраняет левый список в файл."""
-    try:
-        data = request.get_json()
-        domains = [d.strip() for d in data.get('domains', []) if d.strip()]
-        
-        storage = get_user_storage()
-        success = storage.save_domains(domains)
-        
-        return jsonify({"success": success, "count": len(domains)})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-@app.route('/api/status')
-def api_status():
-    backend = get_backend_storage()
-    user = get_user_storage()
+def api_save_domains():
+    """Сохранение списка доменов (заглушка)."""
+    sid = request.cookies.get('sid')
     
-    return jsonify({
-        "backend": {
-            "type": backend.__class__.__name__,
-            "available": backend.is_available()
-        },
-        "user": {
-            "type": user.__class__.__name__,
-            "available": user.is_available()
-        }
-    })
+    if not sid or sid not in sessions:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    # Заглушка - вернуть успех
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    web_config = config.get('web_server', {})
+    host = web_config.get('address', '127.0.0.1')
+    port = web_config.get('port', 8081)
+    
+    print(f"Starting server on http://{host}:{port}")
+    print(f"Checkpoint API: {config['rest_api_checkpoint']['base_url']}")
+    print(f"List name: {config['rest_api_checkpoint']['list_name']}")
+    
+    app.run(host=host, port=port, debug=True, threaded=True)
