@@ -66,6 +66,13 @@ if __name__ == '__main__':
     )
 
     print(f"set_application_site: {result}")
+
+    result = publish(
+        sid= sid, 
+        base_url="http://localhost:8080"
+    )
+
+    print(f"publish: {result}")    
     
     result = logout(
         sid= sid, 
