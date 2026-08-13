@@ -68,6 +68,9 @@ class CheckpointStorage():
                     sid, self.base_url, self.list_name, "remove",
                         {"url-list": url_list}
                 )
+                
+            # Публикация изменений
+            api.publish(sid, self.base_url)
 
             return True
         except Exception as e:
