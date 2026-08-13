@@ -21,6 +21,13 @@ def show_application_site(sid: str, base_url: str, list_name: str = None) -> dic
     response = requests.post(url, json=payload, headers=headers, verify=False)
     return response.json()
 
+def publish(sid: str, base_url: str) -> dict:
+    url = f"{base_url}/web_api/publish"
+    headers = {"Content-Type": "application/json", "X-chkp-sid": sid}
+    payload = {}
+    response = requests.post(url, json=payload, headers=headers, verify=False)
+    return response.json()
+
 def set_application_site(sid: str, base_url: str, list_name: str, action: str, data: dict) -> dict:
     url = f"{base_url}/web_api/set-application-site"
     headers = {"Content-Type": "application/json", "X-chkp-sid": sid}

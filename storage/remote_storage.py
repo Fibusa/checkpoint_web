@@ -1,6 +1,6 @@
 import re
 from typing import List
-import storage.api as api
+import api as api
 
 class CheckpointStorage():
     """Хранилище доменов через Check Point API."""
