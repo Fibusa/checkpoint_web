@@ -1,4 +1,5 @@
 import re
+import time
 from typing import List
 import api as api
 
@@ -68,10 +69,10 @@ class CheckpointStorage():
                     sid, self.base_url, self.list_name, "remove",
                         {"url-list": url_list}
                 )
-                
+
             # Публикация изменений
             api.publish(sid, self.base_url)
-
+            time.sleep(30)
             return True
         except Exception as e:
             print(f"Error in save_domains: {e}")

@@ -310,6 +310,12 @@
             background: #4dd9b5; 
         }
 
+        .save-btn:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
         /* Modal Styles */
         .modal-overlay {
             position: fixed;
@@ -460,6 +466,61 @@
             font-weight: 600;
         }
 
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(2, 12, 27, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            padding: 40px;
+            background: var(--bg-panel);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            min-width: 300px;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .loading-subtext {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -541,7 +602,7 @@
         <div class="list-panel">
             <div class="panel-header">
                 <span class="panel-title">Right List <span class="badge" id="right-count">0</span></span>
-                <button class="save-btn" onclick="saveToBackend()">Save</button>
+                <button class="save-btn" id="save-btn" onclick="saveToBackend()">Save</button>
             </div>
             <div class="list-content" id="right-list">
                 <div class="empty-state">
@@ -571,6 +632,15 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Saving changes...</div>
+            <div class="loading-subtext" id="loading-subtext">Publishing to Check Point</div>
+        </div>
+    </div>
+
     <!-- Success Popup -->
     <div class="success-popup" id="success-popup">
         <span class="success-popup-icon">✓</span>
@@ -582,6 +652,17 @@
         let rightListData = [];
         let showMatches = false;
         let isLoggedIn = false;
+
+        function showLoading(subtext = 'Processing...') {
+            document.getElementById('loading-subtext').textContent = subtext;
+            document.getElementById('loading-overlay').classList.add('active');
+            document.getElementById('save-btn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.remove('active');
+            document.getElementById('save-btn').disabled = false;
+        }
 
         function openLogin() {
             if (isLoggedIn) {
@@ -784,6 +865,9 @@
                 return;
             }
 
+            // Показываем loading overlay
+            showLoading('Publishing changes to Check Point...');
+
             try {
                 const res = await fetch('/api/save-to-backend', {
                     method: 'POST',
@@ -794,11 +878,17 @@
                 const result = await res.json();
                 
                 if (result.success) {
-                    showSuccess('Domains saved');
+                    showSuccess('Domains saved successfully');
                     refreshBackend();
+                } else {
+                    alert('Save failed: ' + (result.error || 'Unknown error'));
                 }
             } catch(e) {
                 console.error(e);
+                alert('Save error: ' + e.message);
+            } finally {
+                // Скрываем loading overlay
+                hideLoading();
             }
         }
 
